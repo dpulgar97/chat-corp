@@ -5,7 +5,6 @@ const ChatContainer = ({ chat, onSendMessage }) => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Auto-scroll al final cuando cambian los mensajes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat?.messages]);
@@ -33,7 +32,7 @@ const ChatContainer = ({ chat, onSendMessage }) => {
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="h-24 w-24 text-gray-400 mx-auto mb-4"
+            className="h-24 w-24 text-gray-400 mx-auto mb-4 chat-icon-placeholder"
           >
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
             <g
