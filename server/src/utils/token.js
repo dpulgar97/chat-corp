@@ -4,7 +4,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
 
 export const generateToken = (user) => {
   return jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
+    { id: user.id, username: user.username, role: user.role },
     JWT_SECRET,
     { expiresIn: '1h' }
   );

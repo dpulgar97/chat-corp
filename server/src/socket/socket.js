@@ -3,13 +3,14 @@ import { verifyToken } from '../utils/token.js';
 export const setupSocket = (io) => {
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
-    if (!token) {
-      return next(new Error('Token no proporcionado'));
-    }
+    if (!token) return next(new Error('Token requerido'));
 
     const decoded = verifyToken(token);
-    if (!decoded) {
-      return next(new Error('Token inválido'));
+    if (!decoded) return next(new Error('Token inválido'));
+
+
+    if (decoded.role !== 'user') {
+      return next(new Error('Acceso denegado: solo usuarios pueden usar el chat'));
     }
 
     socket.user = decoded;
@@ -21,6 +22,8 @@ export const setupSocket = (io) => {
     socket.join('general');
 
     socket.on('sendMessage', (messageText) => {
+
+
       if (!messageText || typeof messageText !== 'string') return;
 
       const message = {

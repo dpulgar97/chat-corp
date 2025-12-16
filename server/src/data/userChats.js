@@ -1,4 +1,3 @@
-// server/data/userChats.js
 export const getUserChats = (userId) => {
   // Simulación: qué chats ve cada usuario
   const chatsByUser = {

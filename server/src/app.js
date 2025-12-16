@@ -9,6 +9,7 @@ import { setupSocket } from './socket/socket.js';
 
 import authRoutes from './routes/auth.routes.js';
 import testRoutes from './routes/test.routes.js';
+import chatRoutes from './routes/chat.route.js';
 
 connectDB();
 
@@ -26,6 +27,7 @@ app.get('/', (req, res) => {
 });
 app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
+app.use('/api/chats', chatRoutes);
 
 const server = http.createServer(app);
 

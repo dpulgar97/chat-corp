@@ -1,118 +1,142 @@
 // src/App.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { io } from "socket.io-client";
 import Sidebar from "./components/Sidebar";
 import ChatContainer from "./components/ChatContainer";
 import "./App.css";
 
-const initialChatsData = [
-  {
-    id: 1,
-    type: "project",
-    name: 'Conferencia',
-    message: 'Proyecto "Conferencia" ha sido actualizado.',
-    date: "Apr 11",
-    initials: "P",
-    color: "bg-green-500",
-    messages: [
-      {
-        id: 1,
-        text: "Hola, ¿cómo va el proyecto?",
-        sender: "Tú",
-        time: "10:30 AM",
-      },
-      {
-        id: 2,
-        text: "Bien, ya terminamos la presentación.",
-        sender: "Alex",
-        time: "10:32 AM",
-      },
-    ],
-  },
-  {
-    id: 2,
-    type: "workgroup",
-    name: 'Grupo de trabajo: "Diseño"',
-    message: 'Grupo de trabajo "Diseño" ha actualizado el enlace del proyecto.',
-    date: "Apr 10",
-    initials: "W",
-    color: "bg-green-600",
-    messages: [
-      {
-        id: 1,
-        text: "¿Alguien revisó los mockups?",
-        sender: "Lucía",
-        time: "9:15 AM",
-      },
-      {
-        id: 2,
-        text: "Sí, están listos en Figma.",
-        sender: "Tú",
-        time: "9:20 AM",
-      },
-    ],
-  },
-  {
-    id: 3,
-    type: "person",
-    name: "Jessica Evans",
-    message: "Jessica Evans ha cambiado su rol a 'Líder de Proyecto'.",
-    date: "Apr 3",
-    initials: "JE",
-    color: "bg-purple-500",
-    messages: [
-      {
-        id: 1,
-        text: "¡Felicidades por el nuevo rol!",
-        sender: "Tú",
-        time: "2:00 PM",
-      },
-      { id: 2, text: "Gracias 😊", sender: "Jessica", time: "2:02 PM" },
-    ],
-  },
-];
+const SOCKET_URL = "http://localhost:3001";
 
 function App() {
-  const [chats, setChats] = useState(initialChatsData);
+  const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const sendMessage = (text) => {
-    if (!selectedChat || !text.trim()) return;
+  // Verificar rol y redirigir si es admin
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      // Redirigir a panel de administración (puedes crear esta ruta luego)
+      window.location.href = "/admin"; // o "/admin-dashboard"
+      return;
+    }
 
-    const now = new Date();
-    const timeString = now.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
+    if (!role || role !== "user") {
+      // Si no hay rol válido, redirigir al login
+      window.location.href = "/login";
+      return;
+    }
+
+    // Si es user, continuar
+    setLoading(false);
+  }, []);
+
+  // Inicializar Socket.IO
+  useEffect(() => {
+    if (loading) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const newSocket = io(SOCKET_URL, {
+      auth: { token }
     });
 
-    const newMessage = {
-      id: Date.now(), // ID único simple
-      text: text.trim(),
-      sender: "Tú",
-      time: timeString,
+    newSocket.on("connect_error", (err) => {
+      console.error("Error de conexión a chat:", err.message);
+      alert("No se pudo conectar al chat. Por favor, inicia sesión nuevamente.");
+      window.location.href = "/login";
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.close();
+    };
+  }, [loading]);
+
+  // Cargar chats del backend
+  useEffect(() => {
+    if (loading) return;
+
+    const fetchChats = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${SOCKET_URL}/api/chats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const chatsData = await res.json();
+          setChats(chatsData);
+        } else {
+          console.error("Error al cargar chats:", await res.text());
+        }
+      } catch (err) {
+        console.error("Error de red:", err);
+      }
     };
 
-    // Actualizar el chat seleccionado con el nuevo mensaje
-    const updatedChats = chats.map((chat) => {
-      if (chat.id === selectedChat.id) {
-        const updatedMessages = [...chat.messages, newMessage];
-        // Actualizar el "preview message" del chat en la sidebar
-        const lastMessage = newMessage.text;
-        return {
-          ...chat,
-          message: lastMessage,
-          messages: updatedMessages,
-        };
-      }
-      return chat;
-    });
+    fetchChats();
+  }, [loading]);
 
-    setChats(updatedChats);
-    setSelectedChat((prev) => ({
-      ...prev,
-      messages: [...prev.messages, newMessage],
-      message: newMessage.text, // actualiza preview
-    }));
-  };
+  // Unirse al chat seleccionado y escuchar mensajes
+  useEffect(() => {
+    if (!socket || !selectedChat) return;
+
+    // Unirse a la sala del chat
+    socket.emit("joinChat", selectedChat.id);
+
+    // Escuchar mensajes de este chat
+    const handleMessage = (message) => {
+      if (message.chatId === selectedChat.id) {
+        // Actualizar chats en el estado
+        const updatedChats = chats.map((chat) => {
+          if (chat.id === selectedChat.id) {
+            return {
+              ...chat,
+              messages: [...(chat.messages || []), message],
+              message: message.text, // preview en sidebar
+            };
+          }
+          return chat;
+        });
+
+        setChats(updatedChats);
+        setSelectedChat((prev) => ({
+          ...prev,
+          messages: [...(prev?.messages || []), message],
+          message: message.text,
+        }));
+      }
+    };
+
+    socket.on("receiveMessage", handleMessage);
+
+    return () => {
+      socket.off("receiveMessage", handleMessage);
+    };
+  }, [socket, selectedChat, chats]);
+
+  const sendMessage = useCallback(
+    (text) => {
+      if (!socket || !selectedChat || !text.trim()) return;
+
+      socket.emit("sendMessage", {
+        chatId: selectedChat.id,
+        text: text.trim(),
+      });
+    },
+    [socket, selectedChat]
+  );
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Cargando...</div>;
+  }
 
   return (
     <div className="flex h-screen bg-white">
