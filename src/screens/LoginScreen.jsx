@@ -10,7 +10,6 @@ const LoginScreen = ({ onLogin }) => {
           <h1 className="text-3xl font-bold text-gray-800">Bienvenido</h1>
           <p className="text-gray-600 mt-2">Inicia sesión para continuar</p>
         </div>
-        
         <LoginForm onLoginSuccess={onLogin} />
       </div>
     </div>

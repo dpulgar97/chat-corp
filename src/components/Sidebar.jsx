@@ -49,7 +49,7 @@ const Sidebar = ({ chats, onSelectChat, selectedChatId }) => {
           <div
             key={chat.id}
             onClick={() => onSelectChat(chat)}
-            className={`flex items-start p-4 cursor-pointer border-b border-gray-100 transition-colors ${
+            className={`flex items-center p-4 cursor-pointer border-b border-gray-100 transition-colors ${
               selectedChatId === chat.id ? "bg-blue-50" : "hover:bg-gray-50"
             }`}
           >

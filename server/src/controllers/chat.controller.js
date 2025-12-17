@@ -2,7 +2,7 @@ import { getUserChats } from '../data/userChats.js';
 
 export const getChats = (req, res) => {
   if (req.user.role !== 'user') {
-    return res.json([]); // o un error 403 si prefieres
+    return res.status(403).json({ message: 'Acceso denegado' });
   }
 
   const chats = getUserChats(req.user.id);

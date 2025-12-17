@@ -1,8 +1,7 @@
-// src/components/LoginForm.jsx
 import React, { useState } from "react";
 
 const LoginForm = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,18 +15,18 @@ const LoginForm = ({ onLoginSuccess }) => {
       const res = await fetch("http://localhost:3001/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // Llama a la función de éxito (App.jsx manejará la redirección)
         onLoginSuccess(data.token, data.user.role);
       } else {
         setError(data.message || "Credenciales inválidas");
       }
     } catch (err) {
+      console.log('Error: ', err);
       setError("Error de conexión al servidor");
     } finally {
       setLoading(false);
@@ -40,10 +39,10 @@ const LoginForm = ({ onLoginSuccess }) => {
       
       <div className="mb-4">
         <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Nombre de usuario"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
