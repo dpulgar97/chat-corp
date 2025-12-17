@@ -1,13 +1,21 @@
 @import "tailwindcss";
 
+.bg-main-login {
+    background: #9095ff;
+    background: radial-gradient(circle, #9095ff 0%, rgba(255, 255, 255, 1) 85%);
+}
+
 .chat-icon-placeholder {
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.5;
     }
