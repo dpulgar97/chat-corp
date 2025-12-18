@@ -1,8 +1,19 @@
 @import "tailwindcss";
 
+body {
+    margin: 0;
+    font-family: "Sora", sans-serif !important;
+}
+
 .bg-main-login {
-    background: #9095ff;
-    background: radial-gradient(circle, #9095ff 0%, rgba(255, 255, 255, 1) 85%);
+    background-image: url('./assets/images/BackgroundLogin.webp');
+    background-size: cover;
+}
+
+.bg-main-login > div {
+    background-color: #00000075;
+    backdrop-filter: blur(60px);
+    box-shadow: 0 0 8px #00000080;
 }
 
 .chat-icon-placeholder {

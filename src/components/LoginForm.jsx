@@ -34,27 +34,31 @@ const LoginForm = ({ onLoginSuccess }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md">
+    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto">
       {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
       
       <div className="mb-4">
+        <label htmlFor="" className="text-[.8rem] text-white mb-1 block font-extralight">
+          Nombre de usuario
+        </label>
         <input
           type="text"
-          placeholder="Nombre de usuario"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-600"
           required
         />
       </div>
       
-      <div className="mb-6">
+      <div className="mb-8">
+        <label htmlFor="" className="text-[.8rem] text-white mb-1 block font-extralight">
+          Contraseña
+        </label>
         <input
           type="password"
-          placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-600"
           required
         />
       </div>
@@ -62,9 +66,9 @@ const LoginForm = ({ onLoginSuccess }) => {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-3 rounded font-medium hover:bg-blue-700 transition disabled:opacity-50"
+        className="w-fit mx-auto block bg-zinc-800 text-white py-3 px-8 cursor-pointer rounded-lg font-medium hover:bg-zinc-900 transition disabled:opacity-50"
       >
-        {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+        {loading ? "Iniciando sesión..." : "Ingresar"}
       </button>
     </form>
   );
