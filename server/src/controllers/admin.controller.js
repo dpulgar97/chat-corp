@@ -1,61 +1,79 @@
-import { users } from '../data/users.js';
-import { hashPassword } from '../utils/bcrypt.js';
+import User from "../models/user.model.js";
 
-
-export const getAllUsers = (req, res) => {
-  // Filtrar: no mostrar otros admins (opcional, según tu política)
-  const regularUsers = users.filter(user => user.role === 'user');
-  res.json(regularUsers);
+// Obtener todos los usuarios regulares (excluye admins)
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: "user" }).select("-password");
+    res.json(users);
+  } catch (error) {
+    console.error("Error al obtener usuarios:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
 };
 
-// Crear un nuevo usuario
+// Crear un nuevo usuario (solo admin)
 export const createUser = async (req, res) => {
   const { username, email, password } = req.body;
 
-  // Validaciones básicas
+  // Validación básica (puedes mejorarla con Joi/Zod después)
   if (!username || !email || !password) {
-    return res.status(400).json({ message: 'Todos los campos son requeridos' });
+    return res.status(400).json({ message: "Todos los campos son requeridos" });
   }
 
-  // Evitar duplicados
-  const emailExists = users.some(u => u.email === email);
-  const usernameExists = users.some(u => u.username === username);
-  if (emailExists || usernameExists) {
-    return res.status(409).json({ message: 'Email o nombre de usuario ya existe' });
+  try {
+    // Verificar unicidad (el schema ya tiene unique, pero es bueno validar antes)
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+    });
+
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ message: "Email o nombre de usuario ya existe" });
+    }
+
+    // Crear usuario → el hash se hace automáticamente por el middleware
+    const newUser = new User({
+      username,
+      email,
+      password, // ¡sin hashear aquí! el pre-save lo hace
+      role: "user",
+    });
+
+    await newUser.save();
+
+    const { password: _, ...userWithoutPassword } = newUser.toObject();
+    res.status(201).json(userWithoutPassword);
+  } catch (error) {
+    if (error.code === 11000) {
+      // Duplicado por índice único (fallback)
+      return res.status(409).json({ message: "Email o usuario ya registrado" });
+    }
+    console.error("Error al crear usuario:", error);
+    res.status(500).json({ message: "Error al crear el usuario" });
   }
-
-  // Hashear contraseña
-  const hashedPassword = await hashPassword(password);
-
-  const newUser = {
-    id: String(users.length + 1),
-    username,
-    email,
-    password: hashedPassword,
-    role: 'user' // siempre 'user', los admins solo los crea el sistema
-  };
-
-  users.push(newUser);
-
-  // No devolver la contraseña
-  const { password: _, ...userWithoutPassword } = newUser;
-  res.status(201).json(userWithoutPassword);
 };
 
-// Eliminar usuario
-export const deleteUser = (req, res) => {
+// Eliminar un usuario (solo si es "user")
+export const deleteUser = async (req, res) => {
   const { id } = req.params;
 
-  const userIndex = users.findIndex(u => u.id === id);
-  if (userIndex === -1) {
-    return res.status(404).json({ message: 'Usuario no encontrado' });
-  }
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
 
-  // Evitar que un admin se elimine a sí mismo (opcional)
-  if (users[userIndex].role === 'admin') {
-    return res.status(403).json({ message: 'No puedes eliminar a un administrador' });
-  }
+    if (user.role === "admin") {
+      return res
+        .status(403)
+        .json({ message: "No puedes eliminar a un administrador" });
+    }
 
-  users.splice(userIndex, 1);
-  res.json({ message: 'Usuario eliminado correctamente' });
+    await User.findByIdAndDelete(id);
+    res.json({ message: "Usuario eliminado correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar usuario:", error);
+    res.status(500).json({ message: "Error al eliminar el usuario" });
+  }
 };

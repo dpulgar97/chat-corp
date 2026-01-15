@@ -10,6 +10,7 @@ import { setupSocket } from './socket/socket.js';
 import authRoutes from './routes/auth.routes.js';
 import testRoutes from './routes/test.routes.js';
 import chatRoutes from './routes/chat.route.js';
+import adminRoutes from './routes/admin.routes.js';
 
 connectDB();
 
@@ -17,7 +18,7 @@ const app = express();
 const PORT = process.env.PORT ?? 3001;
 
 app.use(cors({
-  origin: ["http://localhost:5173", "http://192.168.68.105:5173/"],
+  origin: ["http://localhost:5173", "http://192.168.68.105:5173", "http://192.168.0.179:5173", "http://192.168.0.129:5173"],
   credentials: true
 }));
 
@@ -28,12 +29,13 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/chats', chatRoutes);
+app.use('/api/admin', adminRoutes);
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://192.168.68.105:5173/"],
+    origin: ["http://localhost:5173", "http://192.168.68.105:5173", "http://192.168.0.179:5173", "http://192.168.0.129:5173"],
     credentials: true
   }
 });

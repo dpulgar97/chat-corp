@@ -58,7 +58,7 @@ const ChatContainer = ({ chat, onSendMessage }) => {
   return (
     <div className="flex-1 flex flex-col bg-gray-50">
       {/* Encabezado */}
-      <div className="bg-white border-b border-gray-200 p-] flex items-center">
+      <div className="bg-white border-b border-gray-200 p-4 flex items-center">
         <div
           className={`w-10 h-10 rounded-full ${chat.color} flex items-center justify-center text-white font-semibold mr-3`}
         >

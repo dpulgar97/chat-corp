@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import Sidebar from "../components/Sidebar";
 import ChatContainer from "../components/ChatContainer";
 
-const SOCKET_URL = "http://localhost:3001";
+const SOCKET_URL = "http://192.168.0.129:3001";
 
 const ChatApp = () => {
   const [chats, setChats] = useState([]); // lista de chats del usuario
